@@ -121,8 +121,8 @@ function SMODS.INIT.ShamPack()
     },{
         name = "The Haters",
         text = {
-            "Enhances {C:attention}1{} selected",
-            "card into a",
+            "Enhances up to {C:attention}5{} selected",
+            "cards into a",
             "{C:attention}Mild Card"
         }
     });
