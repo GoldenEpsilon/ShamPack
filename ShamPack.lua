@@ -1,0 +1,192 @@
+--- STEAMODDED HEADER
+--- MOD_NAME: ShamPack
+--- MOD_ID: ShamPack
+--- MOD_AUTHOR: [Golden Epsilon, DankShamwow]
+--- MOD_DESCRIPTION: Adds a couple of custom jokers and mechanics to the game.
+
+----------------------------------------------
+------------MOD CODE -------------------------
+
+local MOD_ID = "ShamPack";
+
+-- Fix for atlases while I'm waiting for the PR to be merged
+local set_spritesref = Card.set_sprites
+function Card:set_sprites(_center, _front)
+    set_spritesref(self, _center, _front);
+    if _center then
+        if _center.set then
+            if (_center.set == 'Joker' or _center.consumeable or _center.set == 'Voucher') and _center.atlas then
+                self.children.center.atlas = G.ASSET_ATLAS
+                [(_center.atlas or (_center.set == 'Joker' or _center.consumeable or _center.set == 'Voucher') and _center.set) or 'centers']
+                self.children.center:set_sprite_pos(_center.pos)
+            end
+        end
+    end
+end
+
+-- REMEMBER TO CALL refresh_items AFTERWARDS
+function add_item(mod_id, pool, id, data, desc)
+    -- Add Sprite
+    data.pos = {x=0,y=0};
+    data.atlas = mod_id .. id;
+    SMODS.Sprite:new(mod_id .. id, SMODS.findModByID(mod_id).path, id .. ".png", 71, 95, "asset_atli"):register();
+
+    data.key = id
+    data.order = #G.P_CENTER_POOLS[pool] + 1
+    G.P_CENTERS[id] = data
+    table.insert(G.P_CENTER_POOLS[pool], data)
+
+    G.localization.descriptions[pool][id] = desc;
+end
+
+function refresh_items()
+    for k, v in pairs(G.P_CENTER_POOLS) do
+        table.sort(v, function(a, b) return a.order < b.order end)
+    end
+
+    -- Update localization
+    for g_k, group in pairs(G.localization) do
+        if g_k == 'descriptions' then
+            for _, set in pairs(group) do
+                for _, center in pairs(set) do
+                    center.text_parsed = {}
+                    for _, line in ipairs(center.text) do
+                        center.text_parsed[#center.text_parsed + 1] = loc_parse_string(line)
+                    end
+                    center.name_parsed = {}
+                    for _, line in ipairs(type(center.name) == 'table' and center.name or { center.name }) do
+                        center.name_parsed[#center.name_parsed + 1] = loc_parse_string(line)
+                    end
+                    if center.unlock then
+                        center.unlock_parsed = {}
+                        for _, line in ipairs(center.unlock) do
+                            center.unlock_parsed[#center.unlock_parsed + 1] = loc_parse_string(line)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function SMODS.INIT.ShamPack()
+    add_item(MOD_ID, "Joker", "j_prideful", {
+        unlocked = true,
+        discovered = false,
+        blueprint_compat = false,
+        eternal_compat = false,
+        rarity = 2,
+        cost = 8,
+        name = "Prideful Joker",
+        set = "Joker",
+        config = {
+            extra = 8,
+        },
+    },{
+        name = "Prideful Joker",
+        text = {
+            "{C:attention}Wild Cards{} give",
+            "+8 Mult when scored"
+        }
+    });
+    add_item(MOD_ID, "Joker", "j_slothful", {
+        unlocked = true,
+        discovered = false,
+        blueprint_compat = false,
+        eternal_compat = false,
+        rarity = 2,
+        cost = 6,
+        name = "Slothful Joker",
+        set = "Joker",
+        config = {
+            extra = 8,
+        },
+    },{
+        name = "Slothful Joker",
+        text = {
+            "{C:attention}Mild Cards{} give",
+            "+8 Mult when scored"
+        }
+    });
+
+    add_item(MOD_ID, "Tarot", "c_haters", {
+        discovered = false,
+        cost = 3,
+        consumeable = true,
+        name = "The Haters",
+        set = "Tarot",
+        effect = "Enhance",
+        cost_mult = 1.0,
+        config = { mod_conv = 'm_mild', max_highlighted = 5 },
+    },{
+        name = "The Haters",
+        text = {
+            "Enhances {C:attention}1{} selected",
+            "card into a",
+            "{C:attention}Mild Card"
+        }
+    });
+
+    add_item(MOD_ID, "Enhanced", "m_mild", {
+        max = 500,
+        name = "Mild Card", 
+        set = "Enhanced", 
+        effect = "Mild Card", 
+        label = "Mild Card", 
+        config = {},
+    },{
+        name = "Mild Card",
+        text = {
+            "Can not be used",
+            "as any suit"
+        }
+    });
+
+    -- Apply our changes
+    refresh_items();
+end
+
+
+-- Mild Card Effect Code
+local is_suitref = Card.is_suit
+function Card:is_suit(suit, bypass_debuff, flush_calc)
+    if flush_calc then
+        if self.ability.effect == 'Mild Card' then
+            return false
+        end
+    else
+        if self.debuff and not bypass_debuff then return end
+        if self.ability.effect == 'Mild Card' then
+            return false
+        end
+    end
+    return is_suitref(self, suit, bypass_debuff, flush_calc)
+end
+
+local calculate_jokerref = Card.calculate_joker;
+function Card:calculate_joker(context)
+    local ret_val = calculate_jokerref(self, context);
+    if self.ability.set == "Joker" and not self.debuff then
+        if context.individual then
+            if context.cardarea == G.play then
+                if self.ability.name == 'Slothful Joker' and context.other_card.ability.name == "Mild Card" then
+                    print(self.ability.extra);
+                    return {
+                        mult = self.ability.extra,
+                        card = self
+                    }
+                end
+                if self.ability.name == 'Prideful Joker' and context.other_card.ability.name == "Wild Card" then
+                    return {
+                        mult = self.ability.extra,
+                        card = self
+                    }
+                end
+            end
+        end
+    end
+    return ret_val;
+end
+
+----------------------------------------------
+------------MOD CODE END----------------------
