@@ -28,6 +28,7 @@ end
 function add_item(mod_id, pool, id, data, desc)
     -- Add Sprite
     data.pos = {x=0,y=0};
+    data.key = id;
     data.atlas = mod_id .. id;
     SMODS.Sprite:new(mod_id .. id, SMODS.findModByID(mod_id).path, id .. ".png", 71, 95, "asset_atli"):register();
 
@@ -35,6 +36,10 @@ function add_item(mod_id, pool, id, data, desc)
     data.order = #G.P_CENTER_POOLS[pool] + 1
     G.P_CENTERS[id] = data
     table.insert(G.P_CENTER_POOLS[pool], data)
+    
+    if pool == "Joker" then
+        table.insert(G.P_JOKER_RARITY_POOLS[data.rarity], data)
+    end
 
     G.localization.descriptions[pool][id] = desc;
 end
@@ -70,6 +75,8 @@ function refresh_items()
 end
 
 function SMODS.INIT.ShamPack()
+    print(#G.P_CENTER_POOLS["Joker"]);
+    G.P_CENTER_POOLS["Joker"] = {};
     add_item(MOD_ID, "Joker", "j_prideful", {
         unlocked = true,
         discovered = false,
