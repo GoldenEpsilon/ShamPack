@@ -72,11 +72,13 @@ function refresh_items()
             end
         end
     end
+
+    for k, v in pairs(G.P_JOKER_RARITY_POOLS) do 
+        table.sort(G.P_JOKER_RARITY_POOLS[k], function (a, b) return a.order < b.order end)
+    end
 end
 
 function SMODS.INIT.ShamPack()
-    print(#G.P_CENTER_POOLS["Joker"]);
-    G.P_CENTER_POOLS["Joker"] = {};
     add_item(MOD_ID, "Joker", "j_prideful", {
         unlocked = true,
         discovered = false,
