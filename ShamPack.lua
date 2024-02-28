@@ -73,8 +73,6 @@ function SMODS.INIT.ShamPack()
     add_item(MOD_ID, "Joker", "j_prideful", {
         unlocked = true,
         discovered = false,
-        blueprint_compat = false,
-        eternal_compat = false,
         rarity = 2,
         cost = 8,
         name = "Prideful Joker",
@@ -92,8 +90,6 @@ function SMODS.INIT.ShamPack()
     add_item(MOD_ID, "Joker", "j_slothful", {
         unlocked = true,
         discovered = false,
-        blueprint_compat = false,
-        eternal_compat = false,
         rarity = 2,
         cost = 6,
         name = "Slothful Joker",
@@ -106,6 +102,24 @@ function SMODS.INIT.ShamPack()
         text = {
             "{C:attention}Mild Cards{} give",
             "+8 Mult when scored"
+        }
+    });
+    add_item(MOD_ID, "Joker", "j_unstable", {
+        unlocked = true,
+        discovered = false,
+        blueprint_compat = false,
+        rarity = 3,
+        cost = 5,
+        name = "Unstable Joker",
+        set = "Joker",
+        config = {
+            extra = "Unstable Joker"
+        },
+    },{
+        name = "Unstable Joker",
+        text = {
+            "Becomes a new {C:attention}Joker Card{}",
+            "every round"
         }
     });
 
@@ -141,6 +155,16 @@ function SMODS.INIT.ShamPack()
             "as any suit"
         }
     });
+
+    -- For the unstable joker
+    G.localization.descriptions["Joker"]["effect_unstable"] = {
+        name = "UNSTABLE!",
+        text = {
+            "Will become a new",
+            "{C:attention}Joker Card{}",
+            "at the end of the round"
+        }
+    };
 
     -- Apply our changes
     refresh_items();
@@ -184,8 +208,30 @@ function Card:calculate_joker(context)
                 end
             end
         end
+        if context.end_of_round then
+            if not context.blueprint then
+                if self.ability.unstablejoker or self.ability.extra == "Unstable Joker" then
+                    G.jokers:remove_card(self)
+                    self:remove()
+                    self = create_card('Joker', G.jokers, nil, nil, nil, nil, nil, nil);
+                    self.ability.unstablejoker = true;
+                    self:add_to_deck()
+                    G.jokers:emplace(self)
+                    self:start_materialize()
+                end
+            end
+        end
     end
     return ret_val;
+end
+ 
+local card_uiref = Card.generate_UIBox_ability_table;
+function Card:generate_UIBox_ability_table()
+    local ret_val = card_uiref(self);
+    if self.ability and self.ability.unstablejoker then
+        return generate_card_ui({key="effect_unstable", set="Joker"}, ret_val);
+    end
+    return ret_val
 end
 
 ----------------------------------------------
