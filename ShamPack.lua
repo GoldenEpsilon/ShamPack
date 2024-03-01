@@ -131,6 +131,25 @@ function SMODS.INIT.ShamPack()
             "every round"
         }
     });
+    add_item(MOD_ID, "Joker", "j_vince", {
+        unlocked = true,
+        discovered = false,
+        blueprint_compat = false,
+        rarity = 2,
+        cost = 8,
+        name = "Vince Joker",
+        set = "Joker",
+        config = {
+            extra = {poker_hand = "Flush", dollars = 5}
+        },
+    },{
+        name = "Vince Joker",
+        text = {
+            "When you play a {C:attention}Flush{},",
+            "gain {C:money}$5{}",
+            "and all cards scored become {C:attention}Mild Cards{}"
+        }
+    });
 
     add_item(MOD_ID, "Tarot", "c_haters", {
         discovered = false,
@@ -214,6 +233,39 @@ function Card:calculate_joker(context)
                         mult = self.ability.extra,
                         card = self
                     }
+                end
+            end
+        else
+            if context.cardarea == G.jokers then
+                if context.before then
+                    if self.ability.name == 'Vince Joker' and next(context.poker_hands[self.ability.extra.poker_hand]) then
+                        for k, v in ipairs(context.full_hand) do
+                            v:set_ability(G.P_CENTERS.m_mild, nil, true)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    v:juice_up()
+                                    return true
+                                end
+                            })) 
+                        end
+                        if #context.full_hand > 0 then 
+                            print(self.ability.extra.dollars);
+                            ease_dollars(self.ability.extra.dollars)
+                            G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra.dollars
+                            G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)}))
+                            return {
+                                message = localize('$')..self.ability.extra.dollars,
+                                dollars = self.ability.extra.dollars,
+                                card = self
+                            }
+                        else
+                            return {
+                                message = localize('k_debuffed'),
+                                colour = G.C.RED,
+                                card = self,
+                            }
+                        end
+                    end
                 end
             end
         end
