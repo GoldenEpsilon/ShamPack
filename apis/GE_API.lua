@@ -17,38 +17,30 @@ function GE:init()
                         self.children.center:set_sprite_pos(_center.pos)
                     end
                 end
-            end
-        ]]);
+            end]]);
+
+        inject("card.lua", "Card:generate_UIBox_ability_table", "local badges", [[
+        if self.config and self.config.center and self.config.center.loc_var_func then
+            loc_vars = self.config.center.loc_var_func(self);
+        end
+        local badges]]);
+        inject("functions/common_events.lua", "generate_card_ui", ", vars = loc_vars%}", ", vars = (specific_vars and #specific_vars and specific_vars) or loc_vars}");
 
         injectTail("game.lua", "Game:init_item_prototypes", [[
             GE:refresh_items();
-        ]]);
+]]);
     end
 end
 
-function GE:add_sprite(mod_id, id, px, py)
-    table.insert(G.asset_atli, {name = mod_id .. id, path = "assets/" .. mod_id .. "/" .. id .. ".png", px = px, py = py})
-    local imagedata = love.graphics.newImage("assets/" .. mod_id .. "/" .. id .. ".png")
-    imagedata:setFilter("nearest")
-    canvas = love.graphics.newCanvas(px * G.SETTINGS.GRAPHICS.texture_scaling, py * G.SETTINGS.GRAPHICS.texture_scaling)
-
-    love.graphics.setCanvas(canvas)
-        love.graphics.draw(imagedata, 0, 0, 0, G.SETTINGS.GRAPHICS.texture_scaling)
-    love.graphics.setCanvas()
-
-    imagedata = canvas:newImageData()
-
-    G.ASSET_ATLAS[mod_id .. id] = {
-        name = mod_id .. id,
-        image = love.graphics.newImage(imagedata, {mipmaps = true, dpiscale = G.SETTINGS.GRAPHICS.texture_scaling}),
-        type = "asset_atli",
-        px = px,
-        py = py,
-        custom = true;
-    }
+function GE:refresh_sprites()
 end
 
-function GE:refresh_sprites()
+function GE:inject(mod_id, path, function_name, to_replace, replacement)
+    if GE.injections[mod_id] == nil then
+        GE.injections[mod_id] = {}
+    end
+    table.insert(GE.injections[mod_id], {path = path, function_name = function_name, to_replace = to_replace, replacement = replacement})
+    inject(path, function_name, to_replace:gsub("([^%w])", "%%%1"), replacement:gsub("([^%w])", "%%%1"));
 end
 
 -- Note: px and py are optional
@@ -138,12 +130,26 @@ function GE:refresh_items()
     end
 end
 
-function GE:inject(mod_id, path, function_name, to_replace, replacement)
-    if GE.injections[mod_id] == nil then
-        GE.injections[mod_id] = {}
-    end
-    table.insert(GE.injections[mod_id], {path = path, function_name = function_name, to_replace = to_replace, replacement = replacement})
-    inject(path, function_name, to_replace:gsub("([^%w])", "%%%1"), replacement:gsub("([^%w])", "%%%1"));
+function GE:add_sprite(mod_id, id, px, py)
+    table.insert(G.asset_atli, {name = mod_id .. id, path = "assets/" .. mod_id .. "/" .. id .. ".png", px = px, py = py})
+    local imagedata = love.graphics.newImage("assets/" .. mod_id .. "/" .. id .. ".png")
+    imagedata:setFilter("nearest")
+    canvas = love.graphics.newCanvas(px * G.SETTINGS.GRAPHICS.texture_scaling, py * G.SETTINGS.GRAPHICS.texture_scaling)
+
+    love.graphics.setCanvas(canvas)
+        love.graphics.draw(imagedata, 0, 0, 0, G.SETTINGS.GRAPHICS.texture_scaling)
+    love.graphics.setCanvas()
+
+    imagedata = canvas:newImageData()
+
+    G.ASSET_ATLAS[mod_id .. id] = {
+        name = mod_id .. id,
+        image = love.graphics.newImage(imagedata, {mipmaps = true, dpiscale = G.SETTINGS.GRAPHICS.texture_scaling}),
+        type = "asset_atli",
+        px = px,
+        py = py,
+        custom = true;
+    }
 end
 
 function GE:disable(mod_id)
@@ -151,6 +157,7 @@ function GE:disable(mod_id)
         G.P_JOKER_RARITY_POOLS[G.P_CENTER_POOLS[v.pool][v.id].rarity] = nil;
         G.P_CENTER_POOLS[v.pool][v.id] = nil;
         G.localization.descriptions[v.pool][v.id] = nil;
+        G.P_CENTERS[v.id] = nil
     end
     for k, v in pairs(GE.injections[mod_id]) do
         inject(v.path, v.function_name, v.replacement:gsub("([^%w])", "%%%1"), v.to_replace:gsub("([^%w])", "%%%1"));

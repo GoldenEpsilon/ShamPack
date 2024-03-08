@@ -114,11 +114,12 @@ table.insert(mods,
                 config = {
                     extra = 8,
                 },
+                loc_var_func = function(card) return {localize{type = 'name_text', set = 'Enhanced', key = "m_wild"}, card.ability.extra} end
             },{
                 name = "Prideful Joker",
                 text = {
-                    "{C:attention}Wild Cards{} give",
-                    "+8 Mult when scored"
+                    "{C:attention}%1%{} give",
+                    "+%2% Mult when scored"
                 }
             });
             GE:add_item(MOD_ID, "Joker", "j_slothful", {
@@ -129,11 +130,12 @@ table.insert(mods,
                 config = {
                     extra = 8,
                 },
+                loc_var_func = function(card) return {localize{type = 'name_text', set = 'Enhanced', key = "m_mild"}, card.ability.extra} end
             },{
                 name = "Slothful Joker",
                 text = {
-                    "{C:attention}Mild Cards{} give",
-                    "+8 Mult when scored"
+                    "{C:attention}%1%{} give",
+                    "+%2% Mult when scored"
                 }
             });
             GE:add_item(MOD_ID, "Joker", "j_unstable", {
@@ -161,10 +163,11 @@ table.insert(mods,
                 config = {
                     extra = {poker_hand = "Flush", dollars = 5}
                 },
+                loc_var_func = function(card) return {card.ability.extra.poker_hand, card.ability.extra.dollars} end
             },{
                 name = "Vince Joker",
                 text = {
-                    "When you play a {C:attention}Flush{}, gain {C:money}$5{}",
+                    "When you play a {C:attention}#1#{}, gain {C:money}$#2#{}",
                     "and all cards scored",
                     "become {C:attention}Mild Cards{}"
                 }
@@ -178,12 +181,13 @@ table.insert(mods,
                 effect = "Enhance",
                 cost_mult = 1.0,
                 config = { mod_conv = 'm_mild', max_highlighted = 5 },
+                loc_var_func = function(card) return {card.config.center.config.max_highlighted, localize{type = 'name_text', set = 'Enhanced', key = card.config.center.config.mod_conv}} end
             },{
                 name = "The Haters",
                 text = {
-                    "Enhances up to {C:attention}5{} selected",
+                    "Enhances up to {C:attention}#1#{} selected",
                     "cards into a",
-                    "{C:attention}Mild Card"
+                    "{C:attention}#2#"
                 }
             });
         
@@ -197,7 +201,7 @@ table.insert(mods,
             },{
                 name = "Mild Card",
                 text = {
-                    "Can not be used",
+                    "Cannot be used",
                     "as any suit"
                 }
             });

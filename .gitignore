@@ -10,4 +10,5 @@ apis/CardAPI.lua
 Extracted/version.jkr
 mods/custom_texture_pack.lua
 mods/devtools.lua
-Mods/ExtraChallenges.lua
+Mods/*
+mods/LoadSteamoddedMods.lua
