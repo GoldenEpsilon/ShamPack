@@ -45,6 +45,10 @@ table.insert(mods,
                                     card = self
                                 }
                             end
+                            if self.ability.name == 'Comedy Joker' then
+                            end
+                            if self.ability.name == 'Tragedy Joker' then
+                            end
                         end
                     else
                         if context.cardarea == G.jokers then
@@ -118,8 +122,8 @@ table.insert(mods,
             },{
                 name = "Prideful Joker",
                 text = {
-                    "{C:attention}%1%{} give",
-                    "+%2% Mult when scored"
+                    "{C:attention}#1#{} give",
+                    "+#2# Mult when scored"
                 }
             });
             GE:add_item(MOD_ID, "Joker", "j_slothful", {
@@ -134,8 +138,8 @@ table.insert(mods,
             },{
                 name = "Slothful Joker",
                 text = {
-                    "{C:attention}%1%{} give",
-                    "+%2% Mult when scored"
+                    "{C:attention}#1#{} give",
+                    "+#2# Mult when scored"
                 }
             });
             GE:add_item(MOD_ID, "Joker", "j_unstable", {
@@ -155,7 +159,6 @@ table.insert(mods,
                 }
             });
             GE:add_item(MOD_ID, "Joker", "j_vince", {
-                blueprint_compat = false,
                 rarity = 2,
                 cost = 8,
                 name = "Vince Joker",
@@ -172,6 +175,44 @@ table.insert(mods,
                     "become {C:attention}Mild Cards{}"
                 }
             });
+            --[=[GE:add_item(MOD_ID, "Joker", "j_comedy", {
+                rarity = 1,
+                cost = 4,
+                name = "Comedy Joker",
+                set = "Joker",
+                config = {
+                    extra = {
+                        suit = "",
+                        chips = 50
+                    }
+                },
+                loc_var_func = function(card) return {card.ability.extra.suit, card.ability.extra.chips} end
+            },{
+                name = "Comedy Joker",
+                text = {
+                    "Played #1#s give +#2# chips when scored.",
+                    "Becomes Tragedy Joker when triggered."
+                }
+            });
+            GE:add_item(MOD_ID, "Joker", "j_tragedy", {
+                rarity = -1,
+                cost = 4,
+                name = "Tragedy Joker",
+                set = "Joker",
+                config = {
+                    extra = {
+                        rank = "",
+                        mult = 4
+                    }
+                },
+                loc_var_func = function(card) return {card.ability.extra.rank, card.ability.extra.mult} end
+            },{
+                name = "Tragedy Joker",
+                text = {
+                    "Played #1#s give +#2# Mult when scored.",
+                    "Becomes Comedy Joker when triggered."
+                }
+            });]=]
         
             GE:add_item(MOD_ID, "Tarot", "c_haters", {
                 cost = 3,
