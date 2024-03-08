@@ -1,6 +1,7 @@
 GE = {
     initialized = false,
     items = {},
+    item_keys = {},
     injections = {},
 }
 
@@ -78,22 +79,22 @@ function GE:add_item(mod_id, pool, id, data, desc, px, py)
         px = px,
         py = py
     }
+    table.insert(GE.item_keys, {mod_id = mod_id, id = id});
 end
 
 function GE:refresh_items()
-    for k, v in pairs(GE.items) do
-        for k, v in pairs(v) do
-            if G.P_CENTERS[v.id] == nil then
-                v.data.order = #G.P_CENTER_POOLS[v.pool] + 1
-                G.P_CENTERS[v.id] = v.data
-                table.insert(G.P_CENTER_POOLS[v.pool], v.data)
-                
-                if v.pool == "Joker" then
-                    table.insert(G.P_JOKER_RARITY_POOLS[v.data.rarity], v.data)
-                end
+    for _, v in pairs(GE.item_keys) do
+        local item = GE.items[v.mod_id][v.id]
+        if G.P_CENTERS[item.id] == nil then
+            item.data.order = #G.P_CENTER_POOLS[item.pool] + 1
+            G.P_CENTERS[item.id] = item.data
+            table.insert(G.P_CENTER_POOLS[item.pool], item.data)
             
-                G.localization.descriptions[v.pool][v.id] = v.desc;
+            if item.pool == "Joker" then
+                table.insert(G.P_JOKER_RARITY_POOLS[item.data.rarity], item.data)
             end
+        
+            G.localization.descriptions[item.pool][item.id] = item.desc;
         end
     end
 
@@ -162,7 +163,8 @@ function GE:disable(mod_id)
     for k, v in pairs(GE.injections[mod_id]) do
         inject(v.path, v.function_name, v.replacement:gsub("([^%w])", "%%%1"), v.to_replace:gsub("([^%w])", "%%%1"));
     end
-    GE.items[mod_id] = {}
+    GE.items[mod_id] = nil
+    GE.item_keys = {}
     GE.injections[mod_id] = {}
     GE:refresh_items();
 end
