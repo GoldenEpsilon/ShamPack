@@ -3,6 +3,7 @@ GE = {
     items = {},
     item_keys = {},
     injections = {},
+    card_effects = {},
 }
 
 function GE:init()
@@ -25,11 +26,97 @@ function GE:init()
             loc_vars = self.config.center.loc_var_func(self);
         end
         local badges]]);
-        inject("functions/common_events.lua", "generate_card_ui", ", vars = loc_vars%}", ", vars = (specific_vars and #specific_vars and specific_vars) or loc_vars}");
-
+        inject("functions/common_events.lua", "generate_card_ui", ", vars = loc_vars%}", ", vars = ((specific_vars and #specific_vars ~= 0) and specific_vars) or loc_vars}");
+        
         injectTail("game.lua", "Game:init_item_prototypes", [[
             GE:refresh_items();
 ]]);
+        
+    injectHead("card.lua", "Card:calculate_joker", [[
+        if self.ability.set == "Joker" and not self.debuff then
+            if context.open_booster then
+                GE:card_effect(self, context, "open_booster")
+            elseif context.buying_card then
+                GE:card_effect(self, context, "buy_card")
+            elseif context.selling_self then
+                GE:card_effect(self, context, "sell_self")
+            elseif context.selling_card then
+                GE:card_effect(self, context, "sell_card")
+            elseif context.reroll_shop then
+                GE:card_effect(self, context, "reroll_shop")
+            elseif context.ending_shop then
+                GE:card_effect(self, context, "end_shop")
+            elseif context.skip_blind then
+                GE:card_effect(self, context, "skip_blind")
+            elseif context.skipping_booster then
+                GE:card_effect(self, context, "skip_booster")
+            elseif context.playing_card_added and not sopen_boosterelf.getting_sliced then
+                GE:card_effect(self, context, "add_card")
+            elseif context.first_hand_drawn then
+                GE:card_effect(self, context, "start_round")
+            elseif context.setting_blind and not self.getting_sliced then
+                GE:card_effect(self, context, "setup_round")
+            elseif context.destroying_card and not context.blueprint then
+                GE:card_effect(self, context, "pre_destroy_card")
+            elseif context.cards_destroyed then
+                GE:card_effect(self, context, "destroy_card")
+            elseif context.remove_playing_cards then
+                GE:card_effect(self, context, "post_destroy_card")
+            elseif context.using_consumable then
+                GE:card_effect(self, context, "use_consumable")
+            elseif context.debuffed_hand then
+                GE:card_effect(self, context, "play_debuffed")
+            elseif context.pre_discard then
+                GE:card_effect(self, context, "pre_discard")
+            elseif context.discard then
+                GE:card_effect(self, context, "discard")
+            elseif context.end_of_round then
+                if context.individual then
+                    if context.cardarea == G.play then
+                        GE:card_effect(self, context, "play_individual_end_round")
+                    end
+                    if context.cardarea == G.hand then
+                        GE:card_effect(self, context, "hand_individual_end_round")
+                    end
+                elseif context.repetition then
+                    if context.cardarea == G.play then
+                        GE:card_effect(self, context, "play_repetition_end_round")
+                    end
+                    if context.cardarea == G.hand then
+                        GE:card_effect(self, context, "hand_repetition_end_round")
+                    end
+                elseif not context.blueprint then
+                    GE:card_effect(self, context, "end_round")
+                end
+            elseif context.individual then
+                if context.cardarea == G.play then
+                    GE:card_effect(self, context, "play_individual")
+                end
+                if context.cardarea == G.hand then
+                    GE:card_effect(self, context, "hand_individual")
+                end
+            elseif context.repetition then
+                if context.cardarea == G.play then
+                    GE:card_effect(self, context, "play_repetition")
+                end
+                if context.cardarea == G.hand then
+                    GE:card_effect(self, context, "hand_repetition")
+                end
+            elseif context.other_joker then
+                GE:card_effect(self, context, "other_joker")
+            else
+                if context.cardarea == G.jokers then
+                    if context.before then
+                        GE:card_effect(self, context, "pre_joker")
+                    elseif context.after then
+                        GE:card_effect(self, context, "post_joker")
+                    else
+                        GE:card_effect(self, context, "joker")
+                    end
+                end
+            end
+        end
+    ]])
     end
 end
 
@@ -42,6 +129,14 @@ function GE:inject(mod_id, path, function_name, to_replace, replacement)
     end
     table.insert(GE.injections[mod_id], {path = path, function_name = function_name, to_replace = to_replace, replacement = replacement})
     inject(path, function_name, to_replace:gsub("([^%w])", "%%%1"), replacement:gsub("([^%w])", "%%%1"));
+end
+
+function GE:card_effect(self, context, context_name)
+    for k, v in GE.items do
+        if v.set == self.ability.set and v.name == self.ability.name then
+            v.func(self, context);
+        end
+    end
 end
 
 -- Note: px and py are optional
@@ -102,28 +197,10 @@ function GE:refresh_items()
         table.sort(v, function(a, b) return a.order < b.order end)
     end
 
-    -- Update localization
-    for g_k, group in pairs(G.localization) do
-        if g_k == 'descriptions' then
-            for _, set in pairs(group) do
-                for _, center in pairs(set) do
-                    center.text_parsed = {}
-                    for _, line in ipairs(center.text) do
-                        center.text_parsed[#center.text_parsed + 1] = loc_parse_string(line)
-                    end
-                    center.name_parsed = {}
-                    for _, line in ipairs(type(center.name) == 'table' and center.name or { center.name }) do
-                        center.name_parsed[#center.name_parsed + 1] = loc_parse_string(line)
-                    end
-                    if center.unlock then
-                        center.unlock_parsed = {}
-                        for _, line in ipairs(center.unlock) do
-                            center.unlock_parsed[#center.unlock_parsed + 1] = loc_parse_string(line)
-                        end
-                    end
-                end
-            end
-        end
+    local localization = love.filesystem.getInfo('localization/'..G.SETTINGS.language..'.lua')
+    if localization ~= nil then
+      self.localization = assert(loadstring(love.filesystem.read('localization/'..G.SETTINGS.language..'.lua')))()
+      init_localization();
     end
 
     for k, v in pairs(G.P_JOKER_RARITY_POOLS) do 
@@ -155,8 +232,24 @@ end
 
 function GE:disable(mod_id)
     for k, v in pairs(GE.items[mod_id]) do
-        G.P_JOKER_RARITY_POOLS[G.P_CENTER_POOLS[v.pool][v.id].rarity] = nil;
-        G.P_CENTER_POOLS[v.pool][v.id] = nil;
+        local i = 0
+        for k, v2 in pairs(G.P_CENTER_POOLS[v.pool]) do
+            if v.data.name == v2.name then
+                i = k;
+                break;
+            end
+        end
+        G.P_CENTER_POOLS[v.pool][i] = nil;
+        i = 0;
+        for k, v2 in pairs(G.P_JOKER_RARITY_POOLS[v.data.rarity]) do
+            if v.data.name == v2.name then
+                i = k;
+                break;
+            end
+        end
+        if i ~= 0 then
+            G.P_JOKER_RARITY_POOLS[v.data.rarity][i] = nil;
+        end
         G.localization.descriptions[v.pool][v.id] = nil;
         G.P_CENTERS[v.id] = nil
     end
