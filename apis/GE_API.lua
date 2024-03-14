@@ -35,83 +35,114 @@ function GE:init()
     injectHead("card.lua", "Card:calculate_joker", [[
         if self.ability.set == "Joker" and not self.debuff then
             if context.open_booster then
-                GE:card_effect(self, context, "open_booster")
+                local ret_val = GE:card_effect(self, context, "open_booster")
+                if ret_val then return ret_val end
             elseif context.buying_card then
-                GE:card_effect(self, context, "buy_card")
+                local ret_val = GE:card_effect(self, context, "buy_card")
+                if ret_val then return ret_val end
             elseif context.selling_self then
-                GE:card_effect(self, context, "sell_self")
+                local ret_val = GE:card_effect(self, context, "sell_self")
+                if ret_val then return ret_val end
             elseif context.selling_card then
-                GE:card_effect(self, context, "sell_card")
+                local ret_val = GE:card_effect(self, context, "sell_card")
+                if ret_val then return ret_val end
             elseif context.reroll_shop then
-                GE:card_effect(self, context, "reroll_shop")
+                local ret_val = GE:card_effect(self, context, "reroll_shop")
+                if ret_val then return ret_val end
             elseif context.ending_shop then
-                GE:card_effect(self, context, "end_shop")
+                local ret_val = GE:card_effect(self, context, "end_shop")
+                if ret_val then return ret_val end
             elseif context.skip_blind then
-                GE:card_effect(self, context, "skip_blind")
+                local ret_val = GE:card_effect(self, context, "skip_blind")
+                if ret_val then return ret_val end
             elseif context.skipping_booster then
-                GE:card_effect(self, context, "skip_booster")
+                local ret_val = GE:card_effect(self, context, "skip_booster")
+                if ret_val then return ret_val end
             elseif context.playing_card_added and not sopen_boosterelf.getting_sliced then
-                GE:card_effect(self, context, "add_card")
+                local ret_val = GE:card_effect(self, context, "add_card")
+                if ret_val then return ret_val end
             elseif context.first_hand_drawn then
-                GE:card_effect(self, context, "start_round")
+                local ret_val = GE:card_effect(self, context, "start_round")
+                if ret_val then return ret_val end
             elseif context.setting_blind and not self.getting_sliced then
-                GE:card_effect(self, context, "setup_round")
+                local ret_val = GE:card_effect(self, context, "setup_round")
+                if ret_val then return ret_val end
             elseif context.destroying_card and not context.blueprint then
-                GE:card_effect(self, context, "pre_destroy_card")
+                local ret_val = GE:card_effect(self, context, "pre_destroy_card")
+                if ret_val then return ret_val end
             elseif context.cards_destroyed then
-                GE:card_effect(self, context, "destroy_card")
+                local ret_val = GE:card_effect(self, context, "destroy_card")
+                if ret_val then return ret_val end
             elseif context.remove_playing_cards then
-                GE:card_effect(self, context, "post_destroy_card")
+                local ret_val = GE:card_effect(self, context, "post_destroy_card")
+                if ret_val then return ret_val end
             elseif context.using_consumable then
-                GE:card_effect(self, context, "use_consumable")
+                local ret_val = GE:card_effect(self, context, "use_consumable")
+                if ret_val then return ret_val end
             elseif context.debuffed_hand then
-                GE:card_effect(self, context, "play_debuffed")
+                local ret_val = GE:card_effect(self, context, "play_debuffed")
+                if ret_val then return ret_val end
             elseif context.pre_discard then
-                GE:card_effect(self, context, "pre_discard")
+                local ret_val = GE:card_effect(self, context, "pre_discard")
+                if ret_val then return ret_val end
             elseif context.discard then
-                GE:card_effect(self, context, "discard")
+                local ret_val = GE:card_effect(self, context, "discard")
+                if ret_val then return ret_val end
             elseif context.end_of_round then
                 if context.individual then
                     if context.cardarea == G.play then
-                        GE:card_effect(self, context, "play_individual_end_round")
+                        local ret_val = GE:card_effect(self, context, "play_individual_end_round")
+                        if ret_val then return ret_val end
                     end
                     if context.cardarea == G.hand then
-                        GE:card_effect(self, context, "hand_individual_end_round")
+                        local ret_val = GE:card_effect(self, context, "hand_individual_end_round")
+                        if ret_val then return ret_val end
                     end
                 elseif context.repetition then
                     if context.cardarea == G.play then
-                        GE:card_effect(self, context, "play_repetition_end_round")
+                        local ret_val = GE:card_effect(self, context, "play_repetition_end_round")
+                        if ret_val then return ret_val end
                     end
                     if context.cardarea == G.hand then
-                        GE:card_effect(self, context, "hand_repetition_end_round")
+                        local ret_val = GE:card_effect(self, context, "hand_repetition_end_round")
+                        if ret_val then return ret_val end
                     end
                 elseif not context.blueprint then
-                    GE:card_effect(self, context, "end_round")
+                    local ret_val = GE:card_effect(self, context, "end_round")
+                    if ret_val then return ret_val end
                 end
             elseif context.individual then
                 if context.cardarea == G.play then
-                    GE:card_effect(self, context, "play_individual")
+                    local ret_val = GE:card_effect(self, context, "play_individual")
+                    if ret_val then return ret_val end
                 end
                 if context.cardarea == G.hand then
-                    GE:card_effect(self, context, "hand_individual")
+                    local ret_val = GE:card_effect(self, context, "hand_individual")
+                    if ret_val then return ret_val end
                 end
             elseif context.repetition then
                 if context.cardarea == G.play then
-                    GE:card_effect(self, context, "play_repetition")
+                    local ret_val = GE:card_effect(self, context, "play_repetition")
+                    if ret_val then return ret_val end
                 end
                 if context.cardarea == G.hand then
-                    GE:card_effect(self, context, "hand_repetition")
+                    local ret_val = GE:card_effect(self, context, "hand_repetition")
+                    if ret_val then return ret_val end
                 end
             elseif context.other_joker then
-                GE:card_effect(self, context, "other_joker")
+                local ret_val = GE:card_effect(self, context, "other_joker")
+                if ret_val then return ret_val end
             else
                 if context.cardarea == G.jokers then
                     if context.before then
-                        GE:card_effect(self, context, "pre_joker")
+                        local ret_val = GE:card_effect(self, context, "pre_joker")
+                        if ret_val then return ret_val end
                     elseif context.after then
-                        GE:card_effect(self, context, "post_joker")
+                        local ret_val = GE:card_effect(self, context, "post_joker")
+                        if ret_val then return ret_val end
                     else
-                        GE:card_effect(self, context, "joker")
+                        local ret_val = GE:card_effect(self, context, "joker")
+                        if ret_val then return ret_val end
                     end
                 end
             end
@@ -132,9 +163,15 @@ function GE:inject(mod_id, path, function_name, to_replace, replacement)
 end
 
 function GE:card_effect(self, context, context_name)
-    for k, v in GE.items do
-        if v.set == self.ability.set and v.name == self.ability.name then
-            v.func(self, context);
+    if self.ability then
+        for k, v in pairs(GE.items) do
+            if v.set == self.ability.set and v.name == self.ability.name then
+                for k,v in pairs(v.abilities) do
+                    if k == context_name then
+                        v.func(self, context);
+                    end
+                end
+            end
         end
     end
 end
